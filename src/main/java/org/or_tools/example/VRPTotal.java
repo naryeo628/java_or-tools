@@ -88,6 +88,26 @@ public final class VRPTotal {
             8,
             8,
         }; // 각 고객의 무게
+        public final int[] cbms = {
+            0,
+            2,
+            3,
+            1,
+            2,
+            3,
+            1,
+            3,
+            2,
+            3,
+            1,
+            2,
+            3,
+            1,
+            2,
+            3,
+            1,
+        }; // 각 고객의 부피 (CBM)
+
         public final long[] vehicleWeightCapacities = {
             15,
             15,
@@ -95,7 +115,17 @@ public final class VRPTotal {
             15,
             15,
             15,
-        }; // 차량 용량
+            15,
+        }; // 차량 무게 용량
+        public final long[] vehicleCbmCapacities = {
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+        }; // 차량 부피 용량
         public final int vehicleNumber = vehicleWeightCapacities.length; // 차량 수
         public final int depot = 0; // 차고지 인덱스
         public final int[] depots = {
@@ -106,7 +136,16 @@ public final class VRPTotal {
             0,
             0,
         }; // 출발지 인덱스
+        public final int[] endDepots = {
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        }; // 도착지 인덱스
 
+        public final int searchTimeLimit = 60; // 최대 탐색 시간 (초)
     }
 
     public static void main(String[] args) {
@@ -147,6 +186,19 @@ public final class VRPTotal {
             "Capacity"
         );
 
+        // 부피(CBM) 제약 추가
+        int cbmCallbackIndex = routing.registerUnaryTransitCallback((long fromIndex) -> {
+            int fromNode = manager.indexToNode(fromIndex);
+            return data.cbms[fromNode];
+        });
+        routing.addDimensionWithVehicleCapacity(
+            cbmCallbackIndex,
+            0, // 부피 여유량
+            data.vehicleCbmCapacities,
+            true, // 누적 시작
+            "CBM"
+        );
+
         // 시간 제약 추가
         int timeCallbackIndex = routing.registerTransitCallback((long fromIndex, long toIndex) -> {
             int fromNode = manager.indexToNode(fromIndex);
@@ -183,7 +235,7 @@ public final class VRPTotal {
                 .toBuilder()
                 .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
                 .setLocalSearchMetaheuristic(LocalSearchMetaheuristic.Value.GUIDED_LOCAL_SEARCH)
-                .setTimeLimit(Duration.newBuilder().setSeconds(30).build()) // 30초 제한
+                .setTimeLimit(Duration.newBuilder().setSeconds(data.searchTimeLimit).build()) // 60초 제한
 //                .setLogSearch(true)
                 .build();
 
@@ -203,6 +255,7 @@ public final class VRPTotal {
                 System.out.println(manager.indexToNode(index));
                 System.out.println("총이동거리: " + solution.value(routing.getDimensionOrDie("Distance").cumulVar(index)));
                 System.out.println("총물품무게: " + solution.value(routing.getDimensionOrDie("Capacity").cumulVar(index)));
+                System.out.println("총물품부피: " + solution.value(routing.getDimensionOrDie("CBM").cumulVar(index)));
                 System.out.println("총운행시간: " + solution.value(routing.getDimensionOrDie("Time").cumulVar(index)));
                 System.out.println("\n====================================");
             }

@@ -233,7 +233,7 @@ public final class VRPTotal {
         RoutingSearchParameters searchParameters =
             main.defaultRoutingSearchParameters()
                 .toBuilder()
-                .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
+                .setFirstSolutionStrategy(FirstSolutionStrategy.Value.AUTOMATIC)
                 .setLocalSearchMetaheuristic(LocalSearchMetaheuristic.Value.GUIDED_LOCAL_SEARCH)
                 .setTimeLimit(Duration.newBuilder().setSeconds(data.searchTimeLimit).build()) // 60초 제한
 //                .setLogSearch(true)
